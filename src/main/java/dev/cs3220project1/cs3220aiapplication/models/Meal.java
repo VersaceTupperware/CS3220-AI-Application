@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public record Meal(
         @JsonProperty("id") UUID id,                 // optional now; useful later
+        @JsonProperty("username") String username,
         @NotBlank String name,
         MealType type,                               // e.g., BREAKFAST/LUNCH/DINNER/SNACK
         @NotNull @Size(min = 1) List<Ingredient> ingredients,
