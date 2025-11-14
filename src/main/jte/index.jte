@@ -43,7 +43,7 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item"><a class="nav-link text-white active" href="#">Home</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="#">Chat</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="assistant">Create Meals</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="#">About Us</a></li>
             </ul>
         </div>
