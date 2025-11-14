@@ -49,6 +49,7 @@ public class MyController {
         if (meal.id() == null) {
             meal = new Meal(
                     UUID.randomUUID(),
+                    new String(""),
                     meal.name(),
                     meal.type(),
                     meal.ingredients(),

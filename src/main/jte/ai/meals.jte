@@ -1,6 +1,14 @@
 @import dev.cs3220project1.cs3220aiapplication.models.Meal
+@import java.time.ZoneId
+@import java.time.format.DateTimeFormatter
 @param java.util.List<Meal> meals
 @param String username
+
+!{
+    DateTimeFormatter formatter =
+        DateTimeFormatter.ofPattern("MMM dd, yyyy h:mm a")
+                         .withZone(ZoneId.systemDefault());
+}
 
 <!DOCTYPE html>
 <html>
@@ -13,11 +21,11 @@
 
 <p><a href="/assistant">Generate a new meal</a></p>
 
-<#if meals.isEmpty()>
+@if (meals.isEmpty())
     <p>You have no generated meals yet.</p>
-</#if>
+@endif
 
-<#if !meals.isEmpty()>
+@if (!meals.isEmpty())
     <table border="1" cellpadding="6">
         <thead>
         <tr>
@@ -28,17 +36,17 @@
         </tr>
         </thead>
         <tbody>
-        <#for (Meal meal : meals)>
+        @for (Meal meal : meals)
             <tr>
                 <td>${meal.name()}</td>
                 <td>${meal.type()}</td>
-                <td>${meal.createdAt()}</td>
-                <td><a href="/meals/${meal.id()}">View</a></td>
+                <td>${formatter.format(meal.createdAt())}</td>
+                <td><a href="/meals/${meal.id().toString()}">View</a></td>
             </tr>
-        </#for>
+        @endfor
         </tbody>
     </table>
-</#if>
+@endif
 
 <p><a href="/">Home</a></p>
 

@@ -3,7 +3,9 @@ package dev.cs3220project1.cs3220aiapplication;
 import dev.cs3220project1.cs3220aiapplication.models.Meal;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -26,6 +28,10 @@ public class DataStore {
 
     public Map<Integer, Meal> getUserMeals(){
         return userMeals;
+    }
+
+    public List<Meal> getMeals() {
+        return new ArrayList<>(userMeals.values());
     }
 
 }
