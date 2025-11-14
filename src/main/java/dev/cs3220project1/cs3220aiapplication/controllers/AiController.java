@@ -2,6 +2,7 @@ package dev.cs3220project1.cs3220aiapplication.controllers;
 
 import dev.cs3220project1.cs3220aiapplication.DataStore;
 import dev.cs3220project1.cs3220aiapplication.models.Meal;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,7 @@ import java.util.UUID;
 public class AiController {
 
     private final ChatClient chat;
-    private DataStore dataStore;
+    private final DataStore dataStore;
 
     public AiController(ChatClient.Builder builder, DataStore dataStore) {
         this.chat = builder.build();
@@ -39,8 +40,14 @@ public class AiController {
             @RequestParam(required = false) Integer calories,
             @RequestParam(required = false, name = "pref") List<String> prefs,
             @RequestParam(required = false) String note,
+            HttpSession session,
             Model model
     ) {
+        // Ensures user is logged in
+        String username = (String) session.getAttribute("user");
+        if (username == null) {
+            return "redirect:/login"; // change if the login URL is different
+        }
         // Build a compact userInput string (same semantics as your old page)
         var sb = new StringBuilder();
         if (mealType != null && !mealType.isBlank()) sb.append("Meal type: ").append(mealType).append(" | ");
@@ -70,26 +77,28 @@ public class AiController {
             """.formatted(format, userInput);
 
         try {
-            var meal = chat.prompt()
+            var mealFromAi = chat.prompt()
                     .user(prompt)
                     .call()
                     .entity(converter);
 
-            if (meal.id() == null) {
-                meal = new Meal(
-                        UUID.randomUUID(),
-                        meal.name(),
-                        meal.type(),
-                        meal.ingredients(),
-                        meal.instructions(),
-                        meal.calories(),
-                        meal.nutrition(),
-                        Instant.now()
-                );
-            }
+            // Ensure we have an ID and attach owner + timestamp
+            UUID id = mealFromAi.id() != null ? mealFromAi.id() : UUID.randomUUID();
 
-            dataStore.addMeal(meal);
-            model.addAttribute("meal", meal);
+            Meal finalMeal = new Meal(
+                    id,
+                    username,                         // logged-in user
+                    mealFromAi.name(),
+                    mealFromAi.type(),
+                    mealFromAi.ingredients(),
+                    mealFromAi.instructions(),
+                    mealFromAi.calories(),
+                    mealFromAi.nutrition(),
+                    Instant.now()
+            );
+
+            dataStore.addMeal(finalMeal);
+            model.addAttribute("meal", finalMeal);
             model.addAttribute("status", "Done");
         } catch (Exception e) {
             model.addAttribute("meal", null);
