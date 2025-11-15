@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpSession;
+
+import java.time.Year;
+import java.util.Optional;
+
 
 import java.util.UUID;
 
@@ -21,16 +26,50 @@ public class HomeController {
         this.userRepository = userRepository;
     }
 
+    private void populateCommon(Model model, HttpSession session) {
+        boolean isLoggedIn = session != null && session.getAttribute("username") != null;
+        model.addAttribute("isLoggedIn", isLoggedIn);
+        model.addAttribute("username", isLoggedIn ? session.getAttribute("username") : "");
+        model.addAttribute("year", Year.now().getValue());
+    }
+
+
     @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("isLoggedIn", false);
-        model.addAttribute("username", "");
-        model.addAttribute("year", 2025);
+    public String index(Model model, HttpSession session) {
+            populateCommon(model, session);
         return "index";
     }
 
+    @GetMapping("/login")
+    public String loginForm(Model model, HttpSession session) {
+        populateCommon(model, session);
+        if (!model.containsAttribute("error")) {
+            model.addAttribute("error", "");
+        }
+        return "login";
+    }
+
+    @PostMapping("/login")
+    public String loginSubmit(@RequestParam String email,
+                              @RequestParam String password,
+                              Model model,
+                              HttpSession session) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent() && userOpt.get().getPassword().equals(password)) {
+            User user = userOpt.get();
+            session.setAttribute("username", user.getFirstName() != null ? user.getFirstName() : user.getEmail());
+            populateCommon(model, session);
+            return "redirect:/";
+        } else {
+            populateCommon(model, session);
+            model.addAttribute("error", "Invalid email or password.");
+            return "login";
+        }
+    }
+
     @GetMapping("/register")
-    public String showRegister(Model model) {
+    public String showRegister(Model model, HttpSession session) {
+        populateCommon(model, session);
         if (!model.containsAttribute("error")) {
             model.addAttribute("error", "");
         }
@@ -48,8 +87,12 @@ public class HomeController {
             @RequestParam String password,
             @RequestParam String confirmPassword,
             Model model,
-            RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes,
+            HttpSession session
+
     ) {
+        populateCommon(model, session);
+
         if (firstName == null || firstName.isBlank()
                 || lastName == null || lastName.isBlank()
                 || email == null || email.isBlank()
@@ -72,6 +115,14 @@ public class HomeController {
         userRepository.save(user);
 
         redirectAttributes.addFlashAttribute("success", "Account created successfully. You can log in now.");
+        return "redirect:/";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        if (session != null) {
+            session.invalidate();
+        }
         return "redirect:/";
     }
 }
