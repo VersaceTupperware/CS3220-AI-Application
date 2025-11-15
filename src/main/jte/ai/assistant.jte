@@ -25,14 +25,14 @@
 <body class="d-flex flex-column min-vh-100">
 <nav class="navbar navbar-expand-lg navbar-dark header-bg">
     <div class="container">
-        <a class="navbar-brand fw-bold text-white" href="/index.html">MealPlanner</a>
+        <a class="navbar-brand fw-bold text-white" href="/">MealPlanner</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navAI">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div id="navAI" class="collapse navbar-collapse justify-content-end">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link text-white active" href="/ai">AI Assistant</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="/meal-list.html">My Meals</a></li>
+                <li class="nav-item"><a class="nav-link text-white active" href="/assistant">AI Assistant</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/meals">My Meals</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="/about-us.html">About Us</a></li>
             </ul>
         </div>

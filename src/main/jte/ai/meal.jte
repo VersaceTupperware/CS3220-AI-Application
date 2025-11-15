@@ -27,7 +27,7 @@
 
 <h2>Ingredients</h2>
 <ul>
-    @for (var ingredient : meal.ingredients())>
+    @for (var ingredient : meal.ingredients())
         <li>${ingredient.quantity()} ${ingredient.unit()} ${ingredient.item()} - ${ingredient.notes()}</li>
     @endfor
 </ul>
@@ -36,7 +36,7 @@
 <ol>
     @for (var step : meal.instructions())>
         <li>${step.text()}</li>
-    @endfor>
+    @endfor
 </ol>
 
 <h2>Nutrition</h2>

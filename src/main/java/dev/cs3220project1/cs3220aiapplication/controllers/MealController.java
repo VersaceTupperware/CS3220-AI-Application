@@ -23,7 +23,7 @@ public class MealController {
 
     @GetMapping("/meals")
     public String listMeals(HttpSession session, Model model) {
-        String username = (String) session.getAttribute("user");
+        String username = (String) session.getAttribute("username");
         if (username == null) {
             return "redirect:/login";
         }
@@ -45,7 +45,7 @@ public class MealController {
             HttpSession session,
             Model model
     ) {
-        String username = (String) session.getAttribute("user");
+        String username = (String) session.getAttribute("username");
         if (username == null) {
             return "redirect:/login";
         }

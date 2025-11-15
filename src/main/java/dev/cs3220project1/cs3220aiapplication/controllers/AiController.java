@@ -44,7 +44,7 @@ public class AiController {
             Model model
     ) {
         // Ensures user is logged in
-        String username = (String) session.getAttribute("user");
+        String username = (String) session.getAttribute("username");
         if (username == null) {
             return "redirect:/login"; // change if the login URL is different
         }
