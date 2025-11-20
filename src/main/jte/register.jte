@@ -56,7 +56,7 @@
                 </div>
 
                 @if(error != null && !error.isEmpty())
-                    <div class="alert alert-danger">@{error}</div>
+                    <div class="alert alert-danger">${error}</div>
                 @endif
 
                 @if(success != null && !success.isEmpty())
