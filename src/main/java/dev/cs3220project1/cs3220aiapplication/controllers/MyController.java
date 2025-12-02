@@ -1,6 +1,9 @@
 package dev.cs3220project1.cs3220aiapplication.controllers;
 
+import dev.cs3220project1.cs3220aiapplication.entities.MealEntity;
+import dev.cs3220project1.cs3220aiapplication.mappers.MealMapper;
 import dev.cs3220project1.cs3220aiapplication.models.Meal;
+import dev.cs3220project1.cs3220aiapplication.repositories.MealRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +17,11 @@ import java.util.UUID;
 public class MyController {
 
     private final ChatClient chatClient;
+    private MealRepository mealRepository;
 
-    public MyController(ChatClient.Builder chatClientBuilder) {
+    public MyController(ChatClient.Builder chatClientBuilder, MealRepository mealRepository) {
         this.chatClient = chatClientBuilder.build();
+        this.mealRepository = mealRepository;
     }
 
     @GetMapping("/ai-rest")
@@ -48,8 +53,8 @@ public class MyController {
         // Optional: fill server-side fields if model didn't set them
         if (meal.id() == null) {
             meal = new Meal(
-                    UUID.randomUUID(),
-                    new String(""),
+                    null,
+                    new String("Test"),
                     meal.name(),
                     meal.type(),
                     meal.ingredients(),
@@ -59,6 +64,10 @@ public class MyController {
                     Instant.now()
             );
         }
+
+        MealEntity entity = MealMapper.toEntity(meal);
+        mealRepository.save(entity);
+
         return meal;
     }
 }
