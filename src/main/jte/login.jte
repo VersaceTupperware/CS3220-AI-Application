@@ -37,7 +37,7 @@
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
                         <h3 class="mb-3">Log In</h3>
-                        @@if(error != null && !error.isBlank())
+                        @if(error != null && !error.isBlank())
                         <div class="alert alert-danger">${error}</div>
                         @endif
                         <form action="/login" method="post">
