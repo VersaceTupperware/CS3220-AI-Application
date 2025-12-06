@@ -1,7 +1,8 @@
 package dev.cs3220project1.cs3220aiapplication.controllers;
 
-import dev.cs3220project1.cs3220aiapplication.DataStore;
+import dev.cs3220project1.cs3220aiapplication.mappers.MealMapper;
 import dev.cs3220project1.cs3220aiapplication.models.Meal;
+import dev.cs3220project1.cs3220aiapplication.repositories.MealRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,16 +10,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Controller
 public class MealController {
 
-    private final DataStore dataStore;
+    private final MealRepository mealRepository;
+    private final MealMapper mealMapper;
 
-    public MealController(DataStore dataStore) {
-        this.dataStore = dataStore;
+    public MealController(MealRepository mealRepository, MealMapper mealMapper) {
+        this.mealRepository = mealRepository;
+        this.mealMapper = mealMapper;
     }
 
     @GetMapping("/meals")
@@ -28,20 +29,24 @@ public class MealController {
             return "redirect:/login";
         }
 
-        List<Meal> allMeals = dataStore.getMeals(); // assumes this exists
-        List<Meal> myMeals = allMeals.stream()
-                .filter(m -> username.equals(m.username()))
+        //Gets the meals for this user from the database
+        var mealEntities = mealRepository.findAllByUsername(username);
+
+        // Will convert DB entities -> view model
+        List<Meal> myMeals = mealEntities.stream()
+                .map(mealMapper::toMeal)
                 .toList();
 
         model.addAttribute("meals", myMeals);
         model.addAttribute("username", username);
 
-        return "ai/meals";  // ai/meals.jte
+         // ai/meals.jte
+        return "ai/meals";
     }
 
     @GetMapping("/meals/{id}")
     public String viewMeal(
-            @PathVariable("id") UUID id,
+            @PathVariable("id") Integer id,
             HttpSession session,
             Model model
     ) {
@@ -50,19 +55,22 @@ public class MealController {
             return "redirect:/login";
         }
 
-        List<Meal> allMeals = dataStore.getMeals();
-        Optional<Meal> mealOpt = allMeals.stream()
-                .filter(m -> m.id().equals(id) && username.equals(m.username()))
-                .findFirst();
+        // Find by ID AND username (access control)
+        var mealEntity = mealRepository.findByIdAndUsername(id, username)
+                .orElse(null);
 
-        if (mealOpt.isEmpty()) {
+        if (mealEntity == null) {
             model.addAttribute("message", "Meal not found or you do not have access.");
-            return "error"; // use an existing error page if you have one
+            return "error";
         }
 
-        model.addAttribute("meal", mealOpt.get());
+        // Map entity -> view model
+        Meal meal = mealMapper.toMeal(mealEntity);
+
+        model.addAttribute("meal", meal);
         model.addAttribute("username", username);
 
-        return "ai/meal";   // ai/meal.jte
+        // ai/meal.jte
+        return "ai/meal";
     }
 }
