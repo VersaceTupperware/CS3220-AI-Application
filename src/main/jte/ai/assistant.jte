@@ -47,7 +47,7 @@
 
                 <!-- Form card -->
                 <div class="section-card breathe mb-3">
-                    <form method="post" action="/ai" class="row g-3">
+                    <form id="meal-form" method="post" action="/ai" class="row g-3">
                         <div class="col-md-6">
                             <label class="fw-semibold">Meal Type</label>
                             <select class="form-select" name="mealType">
@@ -106,117 +106,13 @@
                     </form>
                 </div>
 
-                <!-- Result card -->
-                @if(meal != null)
-                    <div class="recipe-card">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h5 class="fw-semibold mb-1">
-                                ${meal.name()}
-                            </h5>
-                            @if(meal.type() != null)
-                                <span class="badge badge-chip">${meal.type()}</span>
-                            @endif
-                        </div>
+                <!-- Result area -->
+                <div id="meal-results">
+                    @if(meal != null)
+                        @ai.mealcard(meal)
+                    @endif
+                </div>
 
-                        <div class="small recipe-meta mb-2">
-                            @if(meal.calories() != null)
-                                ~ ${meal.calories()} kcal per serving
-                            @endif
-                        </div>
-
-                        <div class="mb-2">
-                            <strong>Ingredients</strong>
-                            <ul class="mb-0">
-                                @if(meal.ingredients() != null)
-                                    @for(Ingredient it : meal.ingredients())
-                                        <li>
-                                            @if(it != null)
-                                                ${it.toString()}
-                                            @else
-                                                !{
-                                                var item = it.item();
-                                                var qty  = it.quantity();
-                                                var unit = it.unit();
-                                                var notes= it.notes();
-                                                }
-                                                ${item} ${qty}${unit != null ? " " + unit : ""}${notes != null && !notes.isBlank() ? " (" + notes + ")" : ""}
-                                            @endif
-                                        </li>
-                                    @endfor
-                                @else
-                                    !{
-                                    var raw = Objects.toString(meal.ingredients(), "");
-                                    var parts = raw.split("\\s*,\\s*");
-                                    }
-                                    @for(String p : parts)
-                                        @if(!p.isBlank())
-                                            <li>${p}</li>
-                                        @endif
-                                    @endfor
-                                @endif
-                            </ul>
-                        </div>
-
-                        <div class="mt-3">
-                            <strong>Instructions</strong>
-                            <ol class="mb-2">
-                                @if(meal.instructions() != null)
-                                    @for(Step st : meal.instructions())
-                                        <li>
-                                            @if(st.text() != null)
-                                                ${st.text()}
-<%--                                            @else--%>
-<%--                                                ${Objects.toString(((java.util.Map) st).get("text"), "")}--%>
-                                            @endif
-                                        </li>
-                                    @endfor
-                                @else
-                                    !{
-                                    var raw = Objects.toString(meal.instructions(), "");
-                                    var numbered = raw.split("\\s*\\d+\\.\\s*");
-                                    }
-                                    @if(numbered.length > 1)
-                                        @for(String s : numbered)
-                                            @if(!s.isBlank())
-                                                <li>${s}</li>
-                                            @endif
-                                        @endfor
-                                    @else
-                                        !{
-                                        var parts2 = raw.split("\\s*,\\s*");
-                                        }
-                                        @for(String s : parts2)
-                                            @if(!s.isBlank())
-                                                <li>${s}</li>
-                                            @endif
-                                        @endfor
-                                    @endif
-                                @endif
-                            </ol>
-                        </div>
-
-                        @if(meal.nutrition() != null)
-                            !{var n = meal.nutrition();}
-
-
-                            <div class="mt-2">
-                                <strong>Nutrition (per serving)</strong>
-                                <div class="small">
-                                    @if(n.proteinGrams() != null) Protein ${n.proteinGrams()}g · @endif
-                                    @if(n.carbsGrams()   != null) Carbs ${n.carbsGrams()}g ·   @endif
-                                    @if(n.fatGrams()     != null) Fat ${n.fatGrams()}g ·       @endif
-                                    @if(n.fiberGrams()   != null) Fiber ${n.fiberGrams()}g ·   @endif
-                                    @if(n.sodiumMg()     != null) Sodium ${n.sodiumMg()}mg     @endif
-                                </div>
-                            </div>
-                        @endif
-
-                        <details class="mt-2">
-                            <summary class="small">Raw JSON</summary>
-                            <pre class="mono small mb-0">${JsonHelper.toJson(meal)}</pre>
-                        </details>
-                    </div>
-                @endif
             </div>
 
             <!-- Right column: examples -->
@@ -237,7 +133,37 @@
 <footer class="footer">
     <p class="mb-0">© 2025 MealPlanner · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
 </footer>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(function () {
+        $("#meal-form").on("submit", function (e) {
+            e.preventDefault(); // stop full page reload
 
+            const $form = $(this);
+
+            const $button = $form.find('button[type="submit"]');
+            const originalText = $button.text();
+            $button.prop("disabled", true).text("Generating...");
+
+            $.ajax({
+                url: "/ai/card", // the endpoint
+                method: "POST",
+                data: $form.serialize(), // send all form fields
+                success: function (html) {
+                    // Append the new card to the results area
+                    $("#meal-results").prepend(html);
+                },
+                error: function (xhr) {
+                    console.error("Error generating meal:", xhr);
+                    alert("Failed to generate meal. Please try again.");
+                },
+                complete: function () {
+                    $button.prop("disabled", false).text(originalText);
+                }
+            });
+        });
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
