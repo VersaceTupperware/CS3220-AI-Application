@@ -15,11 +15,9 @@ import java.util.List;
 public class MealController {
 
     private final MealRepository mealRepository;
-    private final MealMapper mealMapper;
 
-    public MealController(MealRepository mealRepository, MealMapper mealMapper) {
+    public MealController(MealRepository mealRepository) {
         this.mealRepository = mealRepository;
-        this.mealMapper = mealMapper;
     }
 
     @GetMapping("/meals")
@@ -30,11 +28,11 @@ public class MealController {
         }
 
         //Gets the meals for this user from the database
-        var mealEntities = mealRepository.findAllByUsername(username);
+        var mealEntities = mealRepository.findAllByUsernameOrderByCreatedAtDesc(username);
 
         // Will convert DB entities -> view model
         List<Meal> myMeals = mealEntities.stream()
-                .map(mealMapper::toMeal)
+                .map(MealMapper::toRecord)
                 .toList();
 
         model.addAttribute("meals", myMeals);
@@ -46,7 +44,7 @@ public class MealController {
 
     @GetMapping("/meals/{id}")
     public String viewMeal(
-            @PathVariable("id") Integer id,
+            @PathVariable("id") Long id,
             HttpSession session,
             Model model
     ) {
@@ -65,7 +63,7 @@ public class MealController {
         }
 
         // Map entity -> view model
-        Meal meal = mealMapper.toMeal(mealEntity);
+        Meal meal = MealMapper.toRecord(mealEntity);
 
         model.addAttribute("meal", meal);
         model.addAttribute("username", username);
